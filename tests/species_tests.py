@@ -17,7 +17,7 @@ class TestSpecies(unittest.TestCase):
         self.assertIn(self.species.chemical_base, tables.ChemicalBases)
 
         # We rolled a land dwelling species
-        self.assertTrue(self.species.land_dwelling)
+        self.assertEqual("Land", self.species.sphere)
 
         # Hence, the habitat is one of the land-based ones
         self.assertIn(self.species.habitat, tables.LandHabitats)
@@ -53,7 +53,7 @@ class TestSpecies(unittest.TestCase):
 
         new_species = species.Species(self.random_seed, config)
         self.assertEqual("Arctic", new_species.habitat)
-        self.assertTrue(new_species.land_dwelling)
+        self.assertTrue(new_species.sphere)
 
     def testCompatibleHabitatTrophicLevel(self):
         self.assertTrue(self.species.habitat == "Deep-Ocean Vent")
