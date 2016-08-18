@@ -1,3 +1,4 @@
+# TODO: Turn these into dicts with the values to roll against or something even better?
 ChemicalBases = ["Hydrogen", "Ammonia",
                  "Hydrocarbon", "Water",
                  "Chlorine", "Silicone/Sulfuric Acid",
@@ -21,4 +22,10 @@ TrophicStrategy = ["Photosynthetic", "Chemosynthetic",
                    "Pouncing Carnivore", "Chasing Carnivore",
                    "Trapping Carnivore", "Hijacking Carnivore",
                    "Filter-Feeder", "Parasite/Symbiont"]
+
+# TODO: Figure out how to deal with * entries and "Special" entries
+Locomotion = {"Arctic": {2: "Immobile", (3, 4): "Slithering",
+                         (5, 6): "Swimming*", 7: "Digging",
+                         (8, 9): "Walking", (10, 11): "Winged Flight*",
+                         (12, 13): "Special"}}
 
