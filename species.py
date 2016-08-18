@@ -25,8 +25,9 @@ class Species:
 
         if config.planet is not None:
             self.planet = config.planet
+        else:
+            self.planet = defaultdict
 
-        self.details = {}
         self.chemical_base = self.make_chemical_base()
         self.sphere = self.make_sphere()
         self.habitat = self.make_habitat()
@@ -80,6 +81,10 @@ class Species:
             return tables.ChemicalBases[9]
 
     def make_sphere(self):
+        """
+
+        :return:
+        """
         if self.constraints["Sphere"] is not None:
             return self.constraints["Sphere"]
 
@@ -100,13 +105,13 @@ class Species:
         else:
             return "Water"
 
-    def make_habitat(self):
+    def make_habitat(self) -> str:
+        """
+        Based on the type of planet, choose a habitat for the species.
+        :return: The habitat.
+        """
         if self.constraints["Habitat"] is not None:
             return self.constraints["Habitat"]
-
-        # There is only option in this special case
-        if self.planet["Hydrographic Cover"] == 100 and self.sphere == "Land":
-            return "Island/Beach"
 
         # Gas Giants use the water table
         if self.planet["Type"] == "Gas Giant":
@@ -114,6 +119,10 @@ class Species:
         else:
             # This should be the normal case!
             habitat_table = tables.LandHabitats if self.sphere == "Land" else tables.WaterHabitats
+
+        # There is only option in this special case
+        if self.planet["Hydrographic Cover"] == 100 and self.sphere == "Land":
+            return "Island/Beach"
 
         # There are only a few allowed options in this special case
         if self.planet["Hydrographic Cover"] == 0 and self.sphere == "Water":
@@ -144,4 +153,10 @@ class Species:
 
         return habitat
 
-
+    def make_trophic_level(self):
+        """
+        Determine the way that this species fuels its energy needs.
+        :return:
+        """
+        if self.constraints["Trophic Level"] is not None:
+            return self.constraints["Trophic Level"]
