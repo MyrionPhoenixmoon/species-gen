@@ -1,7 +1,7 @@
 import unittest
 
 import species
-import tables
+import lookups
 
 
 class TestSpecies(unittest.TestCase):
@@ -14,26 +14,26 @@ class TestSpecies(unittest.TestCase):
     def testRandomCreation(self):
 
         # TODO: When do we decide on space-dwelling or not?
-        self.assertIn(self.species.chemical_base, tables.ChemicalBases)
+        self.assertIn(self.species.chemical_base, lookups.ChemicalBases)
 
         # We rolled a land dwelling species
         self.assertEqual("Land", self.species.sphere)
 
         # Hence, the habitat is one of the land-based ones
-        self.assertIn(self.species.habitat, tables.LandHabitats)
-        self.assertNotIn(self.species.habitat, tables.WaterHabitats)
+        self.assertIn(self.species.habitat, lookups.LandHabitats)
+        self.assertNotIn(self.species.habitat, lookups.WaterHabitats)
 
         # Possible sapients
         self.assertTrue(self.species.sapient)
 
         # We didn't roll a combined method, so only one strategy
         self.assertTrue(len(self.species.trophic_level) == 1)
-        self.assertIn(self.species.trophic_level, tables.TrophicStrategy)
+        self.assertIn(self.species.trophic_level, lookups.TrophicStrategy)
 
         # We have some form of locomotion, but no secondary or even tertiary
-        self.assertIn(self.species.locomotion, tables.Locomotion[self.species.habitat])
-        self.assertTrue(self.species.secondary_locomotion is None)
-        self.assertTrue(self.species.tertiary_locomotion is None)
+        self.assertIn(self.species.locomotion, lookups.Locomotion[self.species.habitat])
+        self.assertTrue(self.species.secondary_locomotion is "")
+        self.assertTrue(self.species.tertiary_locomotion is "")
 
         # TODO: Size and Mass, Symmetry, #of Limbs, Tails, Manipulators, Skeleton, Skin
         # TODO: Breathing, Temperature, Growth, Sexes, Gestation, (offspring) Strategy
