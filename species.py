@@ -4,6 +4,7 @@ import typing
 
 from dice import DiceRoller
 import lookups
+from tables import *
 
 
 class Species:
@@ -32,8 +33,8 @@ class Species:
         self.chemical_base = self.make_chemical_base()
         self.sphere = self.make_sphere()
         self.habitat = self.make_habitat()
-        self.trophic_level = self.make_trophic_level()
-        self.locomotion, self.secondary_locomotion, self.tertiary_locomotion = self.make_locomotion()
+        self.trophic_levels = self.make_trophic_level()
+        self.locomotion = self.make_locomotion()
         self.size = self.make_size()
         self.symmetry = self.make_symmetry()
         self.no_of_limbs = self.make_limbs()
@@ -80,7 +81,7 @@ class Species:
         if dice_roll == 16:
             return lookups.ChemicalBases[8]
         if dice_roll <= 18:
-            return lookups.ChemicalBases[9]
+            return random.choice(["Nebula-Dwelling", "Machine", "Magnetic"])
 
     def make_sphere(self):
         """
@@ -115,7 +116,11 @@ class Species:
         if self.constraints["Habitat"] is not None:
             return self.constraints["Habitat"]
 
-        # Gas Giants use the water table
+        # These special cases can't occur on a planet (except Plasma on Infernals over 4k°F)
+        if self.chemical_base in ["Plasma", "Nebula-Dwelling", "Magnetic"]:
+            return "Space-Dwelling"
+
+        # Gas Giants use the water table, although everything should only be treated as analogies
         # FIXME: Locomotion treats Gas Giant as a habitat though!
         if self.planet["Type"] == "Gas Giant":
             habitat_table = lookups.WaterHabitats
@@ -156,7 +161,7 @@ class Species:
 
         return habitat
 
-    def make_trophic_level(self):
+    def make_trophic_level(self)-> list(str):
         """
         Determine the way that this species fuels its energy needs.
         :return: A list of one or two ways that the species gets its energy.
@@ -179,11 +184,11 @@ class Species:
                 roll = DiceRoller.roll_dice(3, 0)
 
         for roll in dice_roll:
-            trophic_levels.append(lookups.get_trophic_level(roll, sapient, self.habitat))
+            trophic_levels.append(trophic_level.get_trophic_level(roll, sapient, self.habitat))
 
         return trophic_levels
 
-    def make_locomotion(self) -> tuple([str, str, str]):
+    def make_locomotion(self) -> list(str):
         """
 
         :return: A list of methods of locomotion.
@@ -196,25 +201,73 @@ class Species:
 
         dice_roll = DiceRoller.roll_dice(2, roll_mod)
 
-        primary_locomotion = lookups.get_locomotion(self.habitat, dice_roll, True)
+        primary_locomotion = locomotion.get_locomotion(self.habitat, dice_roll, True)
         secondary_locomotion = ""
         tertiary_locomotion = ""
         if primary_locomotion.endswith("*"):
             dice_roll = DiceRoller.roll_dice(2, 0)
             primary_locomotion = primary_locomotion[:-1]
-            secondary_locomotion = lookups.get_locomotion(primary_locomotion, dice_roll)
+            secondary_locomotion = locomotion.get_locomotion(primary_locomotion, dice_roll)
 
         if secondary_locomotion.endswith("*"):
             dice_roll = DiceRoller.roll_dice(2, 0)
             secondary_locomotion = secondary_locomotion[:-1]
-            tertiary_locomotion = lookups.get_locomotion(primary_locomotion, dice_roll)
+            tertiary_locomotion = locomotion.get_locomotion(primary_locomotion, dice_roll)
             # Tertiary comes from the same table as secondary, ensure that it isn't the same and doesn't end in "*"
             if tertiary_locomotion.endswith("*"):
                 tertiary_locomotion = tertiary_locomotion[:-1]
             if tertiary_locomotion == secondary_locomotion:
                 tertiary_locomotion = ""
 
-        return primary_locomotion, secondary_locomotion, tertiary_locomotion
+        return [primary_locomotion, secondary_locomotion, tertiary_locomotion]
 
+    def make_size(self):
+        modifier = 0
+
+        # Magnetic life should always be small, because of how it happens.
+        if self.chemical_base == "Magnetic":
+            modifier -= 4
+
+        if self.habitat == "Space-Dwelling" and self.chemical_base != "Magnetic":
+            modifier += 3
+
+        if self.planet["Gravity"] <= 0.4:
+            modifier += 2
+        if 0.4 < self.planet["Gravity"] <= 0.75:
+            modifier += 1
+        if 1.5 <= self.planet["Gravity"] <= 2:
+            modifier -= 1
+        if 2 < self.planet["Gravity"]:
+            modifier -= 2
+
+        if self.sphere == "Water":
+            modifier += 1
+
+        if self.habitat == "Open Ocean" or "Banks" or "Plains":
+            modifier += 1
+        if self.habitat == "Tropical Lagoon" or "River/Stream" or "Island/Beach" or "Mountain" or "Desert":
+            modifier -= 1
+
+        if "Grazing Herbivore" in self.trophic_levels:
+            modifier += 1
+        if "Parasite" in self.trophic_levels:
+            modifier -= 4
+
+        if "Slithering" in self.locomotion:
+            modifier -= 1
+        if "Winged Flyer" in self.locomotion:
+            modifier -= 3
+
+        # Plasma multiplies size by 1000
+
+        dice_roll = DiceRoller.roll_dice(1, modifier)
+        if dice_roll <= 2:
+            size_category = "Small"
+        if 3 <= dice_roll <= 4:
+            size_category = "Human-scale"
+        if dice_roll >= 5:
+            size_category = "Large"
+
+        size, weight = size_weight.make_size_and_weight(size_category)
 
 
